@@ -1,4 +1,5 @@
 const User = require('../models/User')
+const bcrypt = require("bcrypt")
 
 // GEt Users
 exports.getUser = async (req, res) => {
@@ -17,7 +18,25 @@ exports.getUser = async (req, res) => {
 
 exports.postUser = async (req, res) => {
     try {
-        const user = new User(req.body);
+
+        const {password} = req.body
+
+        if(!password){
+            return res.status(400).json({
+                message : "password required !!"
+            })
+        }
+
+        const hashedpassword = await bcrypt.hash(password,10)
+
+        req.body.password = hashedpassword;
+
+        const UserData = {
+            ...req.body,
+            password : hashedpassword
+        }
+
+        const user = new User(UserData);
         await user.save();
 
         res.status(201).json({
